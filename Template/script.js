@@ -15,9 +15,18 @@ function loop() {
   window.requestAnimationFrame(loop);
 }
 
+function grow() {
+  // Put your grow code here
+  size+=1;
+  setTimeout(grow,100);
+}
+
 // Setup is run once, at the start of the program. It sets everything up for us!
 function setup() {
   // Put your event listener code here
+  document.addEventListener("keydown", (event) => {grow()
+    console.log(`You pressed the "${event.key}" key.`);
+  });
 
   window.requestAnimationFrame(loop);
 }
