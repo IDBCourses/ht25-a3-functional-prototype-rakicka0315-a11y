@@ -12,7 +12,7 @@ body {
     padding: 0;
     line-height: inherit;
     font-family: "Fraunces", serif;
-    background-color: darkgreen;
+    background-color: lightcyan;
     color: lightgreen;
     transition: all 100ms ease;
 }

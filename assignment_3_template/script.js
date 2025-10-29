@@ -16,7 +16,8 @@
  *
  */
 
-
+        
+    import * as Util from "../assignment_3_template/util.js";
 
 // The state should contain all the "moving" parts of your program, values that change.
 let state = Object.freeze({
@@ -134,5 +135,7 @@ function setup() {
     update();
     use();
 }
+
+
 
 setup(); // Always remember to call setup()!
