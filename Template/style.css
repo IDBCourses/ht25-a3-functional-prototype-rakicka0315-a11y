@@ -7,58 +7,79 @@
 }
 
 /* Prevent padding and border from affecting element width. */
-*,
-::before,
-::after {
+*, *::before, *::after {
     box-sizing: border-box;
+}
+
+
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevents scrollbars */
 }
 
 /* Remove the margin in all browsers */
 body {
-    margin: 0;
-    padding: 0;
-    line-height: inherit;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background: #eceeed;  /* light green garden color */
+}
+
+
+
+.bee,
+#plant,
+.bird {
+    background-color: transparent !important;   /* kill Util.setColour */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: none !important;
+    /* hide any text that Util might have added */
+    font-size: 0;
+    line-height: 0;
+    text-indent: -9999px;
+    overflow: hidden;
+}
+
+
+.bee   { background-image: url('images/bee.png') !important; }
+#plant { background-image: url('images/sunflower.png') !important; }
+.bird  { background-image: url('images/bird.png') !important; }
+
+
+#plant {
+    position: fixed;
+    left: 50%;
+    top: 70%;
+    transform: translate(-50%, -50%);
+    width: 380px;      /* starting size – JS will grow it */
+    height: 1000px;
+}
+
+
+#instructions,
+#timer,
+#score,
+#lives,
+#msg {
+    position: fixed;
+    color: #333;
+    z-index: 10;               /* above sprites */
+    user-select: none;
 }
 
 #instructions {
-  position: fixed;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-weight: bold;
-  color: #333;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: bold;
 }
+#timer   { top: 20px; left: 20px; font-size: 20px; }
+#score   { top: 20px; right: 20px; font-size: 20px; }
+#lives   { top: 20px; right: 120px; font-size: 30px; }
+#msg     { top: 14px; left: 10px; font-size: 18px; }
 
-#plant { 
-    position:fixed; 
-    left:50%; 
-    top:50%; 
-    font-size:50px; 
-}
-
-#timer,#score{
-    position:fixed;
-    top:20px;
-    font-size:20px;
-    color:#333;
-}
-
-#timer{
-    left:20px;
-} 
-
-#score{
-    right:20px;
-}
-
-#msg    { 
-    position:fixed; 
-    top: 14px; 
-    left:10px; 
-    font-size:18px; 
-    color:#333; 
-}
 
 #sample-output {
     position: fixed;

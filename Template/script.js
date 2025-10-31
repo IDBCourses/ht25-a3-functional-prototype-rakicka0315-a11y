@@ -13,7 +13,7 @@ import * as Util from "./util.js";
 //// CONSTANTS ////
 const gameTime = 20;      // seconds
 const beeSpeed = 0.0005;     // % of window width per frame
-const birdSpeed = 0.003;
+const birdSpeed = 0.002;
 const plantX = 0.5;     // normalized 0..1
 const plantY = 0.5;
 
@@ -50,8 +50,7 @@ const scoreEl = document.getElementById('score');
 // create a bee object
 function createBee() {
   const el = Util.createThing(null, "bee");
-  Util.setSize(300, 300, el);
-  Util.setRoundedness(1, el);
+  Util.setSize(100, 100, el);
 
   const startX= 1;
   const startY= 0.5;
@@ -71,7 +70,7 @@ function createBird() {
   Util.setSize(180, 180, el);
 
   const startX= 0;
-  const startY= 0.5;
+  const startY= 0.3;
   Util.setPosition(startX, startY, el);
 
   return {
@@ -121,15 +120,19 @@ function loop() {
       game.beeCount++;
       scoreEl.textContent = `Bees: ${game.beeCount}`;
       bee.el.remove();        
-      
       // Remove from screen
       
-      Util.setSize(plantEl.offsetWidth + 5, plantEl.offsetHeight + 5, plantEl);
+      Util.setSize(plantEl.offsetWidth + 15, plantEl.offsetHeight + 15, plantEl);
+      //Win condition
+      if (game.beeCount >= 5) {  // Fixed: added win condition
+        game.running = false;
+        alert("You Win! 5 bees reached the plant!");
+      }
+      
       return false;                     // Remove from array
     }
     return true;                        // Keep in array
   });
-
 
   // === MOVE BIRDS ===
   game.birds = game.birds.filter(bird => {
@@ -137,11 +140,10 @@ function loop() {
     Util.setPosition(bird.x, bird.y, bird.el);
 
     // Did bird reach plant?
-    if (bird.x >= plantX) {
+    if (bird.x >= plantX-0.05) {
       game.lives--;
       livesEl.textContent = '❤️'.repeat(game.lives);
       bird.el.remove();
-      Util.setColour(120 - (3 - game.lives) * 20, 100, 50, 1, plantEl);
 
       if (game.lives <= 0) {
         game.running = false;
@@ -168,14 +170,10 @@ function setup() {
   const bee = createBee();
   game.bees.push(bee);
 
-  // create one bird
-  const bird = createBird();
-  game.birds = [];  // Make sure array exists
-  game.birds.push(bird);
 
 
   // Every 3.5 seconds, add a new bee
-      setInterval(() => {
+    setInterval(() => {
       if (game.running) {
         const newBee = createBee();
         game.bees.push(newBee);
