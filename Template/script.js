@@ -10,39 +10,47 @@
 
 import * as Util from "./util.js";
 
-// State variables are the parts of your program that change over time.
-
-// Settings variables should contain all of the "fixed" parts of your programs
-
-// 1. CONSTANTS
+//// CONSTANTS ////
 const gameTime = 20;      // seconds
 const beeSpeed = 0.0005;     // % of window width per frame
-const birdSpeed = 0.0007;
-const maxLives = 3;
+const birdSpeed = 0.003;
 const plantX = 0.5;     // normalized 0..1
 const plantY = 0.5;
 
+
+
+//// GAME STATE ////
+// This object holds everything that changes during the game
 let game = {
   timeLeft : gameTime,
   beeCount : 0,
   lives    : 3,
-  bees     : [],   // array of bee objects
-  birds    : [],   // array of bird objects
-  running  : true
+  bees     : [],   // array of active bees
+  birds    : [],   // array of active birds
+  running  : true,
+  swipe: false
 };
 
-// DOM elements
-//const plantEl  = document.getElementById('plant');
+//SWIPING 
+let prevKey = null;
+let currKey = null;
+let timeoutID = null;
+
+const row = ['KeyP', 'KeyO', 'KeyI'];
+
+
+//// DOM ELEMENTS ////
+const plantEl  = document.getElementById('plant');
 const timerEl  = document.getElementById('timer');
-const livesEl  = document.getElementById('lives');
+const livesEl  = document.getElementById('lives'); 
 const scoreEl = document.getElementById('score');
 
-// Functions
+//// FUNCTIONS ////
 
+// create a bee object
 function createBee() {
   const el = Util.createThing(null, "bee");
-  Util.setSize(40, 40, el);
-  Util.setColour(60, 100, 50, 1, el);
+  Util.setSize(300, 300, el);
   Util.setRoundedness(1, el);
 
   const startX= 1;
@@ -57,14 +65,12 @@ function createBee() {
   };
 }
 
+// create a bird object
 function createBird() {
   const el = Util.createThing(null, "bird");
-  Util.setSize(50, 50, el);
-  Util.setColour(200, 70, 50, 1, el)
-  //Util.setPosition(x, y, element);
-  Util.setRoundedness(0.3,el);
+  Util.setSize(180, 180, el);
 
-  const startX= 0.0;
+  const startX= 0;
   const startY= 0.5;
   Util.setPosition(startX, startY, el);
 
@@ -73,10 +79,34 @@ function createBird() {
     x: startX,
     y: startY,
     speed: birdSpeed,
-    slowCount:0
   };
 }
 
+// swipe detection
+function swipeDirection(){
+  let prevIndex = row.indexOf(prevKey);
+  let currIndex = row.indexOf(currKey);
+
+  // If key not in row -> invalid
+  if( currIndex < 0 || prevIndex < 0){
+    return 0;
+  } 
+  
+  let dIndex = currIndex - prevIndex;
+
+  // Only allow swipe of 1 step (P -> O or O -> I)
+  if (dIndex > 1 || dIndex < -1) {
+    return 0;
+  }
+
+  return dIndex;  // -1, 0, or +1
+}
+
+//reset keys
+function resetKeys() {
+  prevKey = null;
+  currKey = null;
+}
 
 // Code that runs over and over again
 function loop() {
@@ -90,7 +120,11 @@ function loop() {
     if (bee.x <= plantX) {
       game.beeCount++;
       scoreEl.textContent = `Bees: ${game.beeCount}`;
-      bee.el.remove();                  // Remove from screen
+      bee.el.remove();        
+      
+      // Remove from screen
+      
+      Util.setSize(plantEl.offsetWidth + 5, plantEl.offsetHeight + 5, plantEl);
       return false;                     // Remove from array
     }
     return true;                        // Keep in array
@@ -107,6 +141,7 @@ function loop() {
       game.lives--;
       livesEl.textContent = '❤️'.repeat(game.lives);
       bird.el.remove();
+      Util.setColour(120 - (3 - game.lives) * 20, 100, 50, 1, plantEl);
 
       if (game.lives <= 0) {
         game.running = false;
@@ -122,11 +157,12 @@ function loop() {
 }
 
 
-// Setup is run once, at the start of the program. It sets everything up for us!
+// SETUP
 function setup() {
 
-  //shows score
+  //shows starting score and lives
   scoreEl.textContent = `Bees: ${game.beeCount}`;
+  livesEl.textContent = '❤️'.repeat(game.lives);
 
   //create one bee to start with
   const bee = createBee();
@@ -138,30 +174,58 @@ function setup() {
   game.birds.push(bird);
 
 
-  // Put your event listener code here
-  // KEY PRESS: Z or B makes the bee faster
+  // Every 3.5 seconds, add a new bee
+      setInterval(() => {
+      if (game.running) {
+        const newBee = createBee();
+        game.bees.push(newBee);
+      }
+    }, 3500);
+
+  // Every 5 seconds, add a new bird
+    setInterval(() => {
+      if (game.running) {
+        game.birds.push(createBird());
+      }
+    }, 5000);
+
+
+  // EVENT LISTENERS
+
   document.addEventListener("keydown", (event) => {
+
+    clearTimeout(timeoutID);
     const key = event.key.toLowerCase();
+
+    // press z or b makes the bee faster
     if (key === "z" || key === "b") {
       // Increase speed of the first bee
       if (game.bees.length > 0) {
-        game.bees[0].speed = game.bees[0].speed + 0.0003;
-      }
+        game.bees[0].speed += 0.0003;
+      } return;
     }
+
+    //swipe p->o->i
+    prevKey = currKey;
+    currKey = event.code;
+
+    let dir = swipeDirection();
+
+    if (dir===1) {
+      game.birds.forEach(bird => {
+        bird.speed *= 0.8;
+        if (bird.speed < 0.001) {
+          bird.el.remove();
+        }
+      });
+    }
+
+
   });
 
-    // Every 4 seconds, add a new bee
-  setInterval(() => {
-    if (game.running) {
-      const newBee = createBee();
-      game.bees.push(newBee);
-    }
-  }, 4000);
-
-  
-  // Add to game arrays!
-  //game.bees.push(createBee());
-  //game.birds.push(createBird());
+  document.addEventListener('keyup', (event) => {
+    timeoutID = setTimeout(resetKeys, 75);
+  });
 
   // Timer
   const timerId = setInterval(() => {
@@ -175,8 +239,6 @@ function setup() {
       alert("Time's up!");
     }
   }, 1000);
-
-  livesEl.textContent = '❤️'.repeat(game.lives);
 
   window.requestAnimationFrame(loop);
 }
