@@ -13,14 +13,13 @@ import * as Util from "./util.js";
 //// CONSTANTS ////
 const gameTime = 20;      // seconds
 const beeSpeed = 0.0005;     // % of window width per frame
-const birdSpeed = 0.002;
+const birdSpeed = 0.0009;
 const plantX = 0.5;     // normalized 0..1
-const plantY = 0.5;
 
 
 
-//// GAME STATE ////
-// This object holds everything that changes during the game
+//// GAME  ////
+// holds everything that changes during the game
 let game = {
   timeLeft : gameTime,
   beeCount : 0,
@@ -28,14 +27,12 @@ let game = {
   bees     : [],   // array of active bees
   birds    : [],   // array of active birds
   running  : true,
-  swipe: false
 };
 
-//SWIPING 
+//// SWIPING ////
 let prevKey = null;
 let currKey = null;
 let timeoutID = null;
-
 const row = ['KeyP', 'KeyO', 'KeyI'];
 
 
@@ -45,7 +42,7 @@ const timerEl  = document.getElementById('timer');
 const livesEl  = document.getElementById('lives'); 
 const scoreEl = document.getElementById('score');
 
-//// FUNCTIONS ////
+//// HELPER FUNCTIONS ////
 
 // create a bee object
 function createBee() {
@@ -107,40 +104,35 @@ function resetKeys() {
   currKey = null;
 }
 
-// Code that runs over and over again
-function loop() {
-  if (!game.running) return;
-
+// bee manager – update bees positions and count
+function updateBees() {
   game.bees = game.bees.filter(bee => {
-    bee.x = bee.x - bee.speed;
+    bee.x -= bee.speed;  // move left 
     Util.setPosition(bee.x, bee.y, bee.el);
 
-    // Did it reach the plant?
-    if (bee.x <= plantX) {
+    if (bee.x <= plantX) {  // Reached plant
       game.beeCount++;
       scoreEl.textContent = `Bees: ${game.beeCount}`;
-      bee.el.remove();        
-      // Remove from screen
-      
-      Util.setSize(plantEl.offsetWidth + 15, plantEl.offsetHeight + 15, plantEl);
-      //Win condition
-      if (game.beeCount >= 5) {  // Fixed: added win condition
+      bee.el.remove();
+      Util.setSize(plantEl.offsetWidth + 20, plantEl.offsetHeight + 20, plantEl);
+
+      if (game.beeCount >= 5) {
         game.running = false;
         alert("You Win! 5 bees reached the plant!");
       }
-      
-      return false;                     // Remove from array
+      return false;  // remove from array
     }
-    return true;                        // Keep in array
+    return true;  // keep
   });
+}
 
-  // === MOVE BIRDS ===
+// bird manager– update birds positions and lives
+function updateBirds() {
   game.birds = game.birds.filter(bird => {
-    bird.x = bird.x + bird.speed;           // Move right
+    bird.x += bird.speed;  // move right
     Util.setPosition(bird.x, bird.y, bird.el);
 
-    // Did bird reach plant?
-    if (bird.x >= plantX-0.05) {
+    if (bird.x >= plantX - 0.1) {  // reached plant 
       game.lives--;
       livesEl.textContent = '❤️'.repeat(game.lives);
       bird.el.remove();
@@ -149,17 +141,25 @@ function loop() {
         game.running = false;
         alert("Game Over! No lives left.");
       }
-      return false;  // Remove bird
+      return false;  // remove
     }
-    return true;     // Keep bird
-
+    return true;  // keep
   });
+}
+
+// Code that runs over and over again
+function loop() {
+
+  if (!game.running) return;
+  
+  updateBees();
+  updateBirds();
 
   window.requestAnimationFrame(loop);
 }
 
 
-// SETUP
+//// SETUP ////
 function setup() {
 
   //shows starting score and lives
@@ -167,16 +167,12 @@ function setup() {
   livesEl.textContent = '❤️'.repeat(game.lives);
 
   //create one bee to start with
-  const bee = createBee();
-  game.bees.push(bee);
-
-
+  game.bees.push(createBee());
 
   // Every 3.5 seconds, add a new bee
     setInterval(() => {
       if (game.running) {
-        const newBee = createBee();
-        game.bees.push(newBee);
+        game.bees.push(createBee());
       }
     }, 3500);
 
@@ -188,7 +184,7 @@ function setup() {
     }, 5000);
 
 
-  // EVENT LISTENERS
+  //// EVENT LISTENERS ////
 
   document.addEventListener("keydown", (event) => {
 
@@ -212,7 +208,7 @@ function setup() {
     if (dir===1) {
       game.birds.forEach(bird => {
         bird.speed *= 0.8;
-        if (bird.speed < 0.001) {
+        if (bird.speed < 0.0002) {
           bird.el.remove();
         }
       });
