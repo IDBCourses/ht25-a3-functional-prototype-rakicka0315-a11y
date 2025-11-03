@@ -10,10 +10,18 @@
 
 import * as Util from "./util.js";
 
+
+//// DOM ELEMENTS ////
+const plantEl  = document.getElementById('plant');
+const timerEl  = document.getElementById('timer');
+const livesEl  = document.getElementById('lives'); 
+const scoreEl = document.getElementById('score');
+
+
 //// CONSTANTS ////
 const gameTime = 20;      // seconds
 const beeSpeed = 0.0005;     // % of window width per frame
-const birdSpeed = 0.0009;
+const birdSpeed = 0.0012;
 const plantX = 0.5;     // normalized 0..1
 
 
@@ -29,30 +37,25 @@ let game = {
   running  : true,
 };
 
-//// SWIPING ////
+//// SWIPING //// 
+// from class example
 let prevKey = null;
 let currKey = null;
 let timeoutID = null;
 const row = ['KeyP', 'KeyO', 'KeyI'];
 
-
-//// DOM ELEMENTS ////
-const plantEl  = document.getElementById('plant');
-const timerEl  = document.getElementById('timer');
-const livesEl  = document.getElementById('lives'); 
-const scoreEl = document.getElementById('score');
-
 //// HELPER FUNCTIONS ////
 
-// create a bee object
+// creates a bee object and adds it to the screen
 function createBee() {
-  const el = Util.createThing(null, "bee");
-  Util.setSize(100, 100, el);
+  const el = Util.createThing(null, "bee"); 
+  Util.setSize(100, 100, el); // width, height in pixels
 
   const startX= 1;
   const startY= 0.5;
   Util.setPosition(startX, startY, el);
 
+  // returns an object with bee's data (position, speed, element)
   return {
     el,
     x: startX,
@@ -61,7 +64,7 @@ function createBee() {
   };
 }
 
-// create a bird object
+// creates a bird object and adds it to the screen
 function createBird() {
   const el = Util.createThing(null, "bird");
   Util.setSize(180, 180, el);
@@ -78,19 +81,19 @@ function createBird() {
   };
 }
 
-// swipe detection
+// swipe detection (from class)
 function swipeDirection(){
-  let prevIndex = row.indexOf(prevKey);
+  let prevIndex = row.indexOf(prevKey); // position of last key in row array (e.g., P=0, O=1, I=2)
   let currIndex = row.indexOf(currKey);
 
-  // If key not in row -> invalid
+  // if key not in row -> invalid, no swipe
   if( currIndex < 0 || prevIndex < 0){
     return 0;
   } 
   
   let dIndex = currIndex - prevIndex;
 
-  // Only allow swipe of 1 step (P -> O or O -> I)
+  // only allows swipe of 1 step (P -> O or O -> I)
   if (dIndex > 1 || dIndex < -1) {
     return 0;
   }
@@ -98,15 +101,15 @@ function swipeDirection(){
   return dIndex;  // -1, 0, or +1
 }
 
-//reset keys
+// reset swipe tracking after delay
 function resetKeys() {
   prevKey = null;
   currKey = null;
 }
 
-// bee manager – update bees positions and count
+// bee manager – update bees (move, check reach, remove if done)
 function updateBees() {
-  game.bees = game.bees.filter(bee => {
+  game.bees = game.bees.filter(bee => { //.filter loops through bees, builds NEW list keeping only "true" returns
     bee.x -= bee.speed;  // move left 
     Util.setPosition(bee.x, bee.y, bee.el);
 
@@ -126,15 +129,15 @@ function updateBees() {
   });
 }
 
-// bird manager– update birds positions and lives
+// bird manager– update birds (move, check reach, remove if done)
 function updateBirds() {
-  game.birds = game.birds.filter(bird => {
+  game.birds = game.birds.filter(bird => { //same as for bees
     bird.x += bird.speed;  // move right
     Util.setPosition(bird.x, bird.y, bird.el);
 
     if (bird.x >= plantX - 0.1) {  // reached plant 
       game.lives--;
-      livesEl.textContent = '❤️'.repeat(game.lives);
+      livesEl.textContent = '❤️'.repeat(game.lives); //.repeat makes string like '❤️' (repeat heart emoji 'lives' times)
       bird.el.remove();
 
       if (game.lives <= 0) {
@@ -147,15 +150,15 @@ function updateBirds() {
   });
 }
 
-// Code that runs over and over again
+// code that runs over and over again – 60x/sec
 function loop() {
 
-  if (!game.running) return;
+  if (!game.running) return; // stops if game over
   
   updateBees();
   updateBirds();
 
-  window.requestAnimationFrame(loop);
+  window.requestAnimationFrame(loop); // calls loop again next frame
 }
 
 
@@ -166,22 +169,22 @@ function setup() {
   scoreEl.textContent = `Bees: ${game.beeCount}`;
   livesEl.textContent = '❤️'.repeat(game.lives);
 
-  //create one bee to start with
+  //creates one bee to start with
   game.bees.push(createBee());
 
-  // Every 3.5 seconds, add a new bee
+  // every 3.5 seconds, add a new bee
     setInterval(() => {
       if (game.running) {
         game.bees.push(createBee());
       }
     }, 3500);
 
-  // Every 5 seconds, add a new bird
+  // every 4 seconds, add a new bird
     setInterval(() => {
       if (game.running) {
         game.birds.push(createBird());
       }
-    }, 5000);
+    }, 4000);
 
 
   //// EVENT LISTENERS ////
@@ -189,7 +192,7 @@ function setup() {
   document.addEventListener("keydown", (event) => {
 
     clearTimeout(timeoutID);
-    const key = event.key.toLowerCase();
+    const key = event.key.toLowerCase(); // ignore case (z or Z)
 
     // press z or b makes the bee faster
     if (key === "z" || key === "b") {
@@ -206,7 +209,7 @@ function setup() {
     let dir = swipeDirection();
 
     if (dir===1) {
-      game.birds.forEach(bird => {
+      game.birds.forEach(bird => { // .forEach loops through all birds
         bird.speed *= 0.8;
         if (bird.speed < 0.0002) {
           bird.el.remove();
@@ -218,7 +221,7 @@ function setup() {
   });
 
   document.addEventListener('keyup', (event) => {
-    timeoutID = setTimeout(resetKeys, 75);
+    timeoutID = setTimeout(resetKeys, 75); // after key release, wait 75ms then reset keys (allows fast swipes)
   });
 
   // Timer
