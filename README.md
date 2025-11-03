@@ -32,5 +32,3 @@ The primary goal is to guide 5 bees to the central plant before the 20-second ti
    - Birds spawn every 4 seconds from the left.
    - Watch the top: Time left, Lives, Bees score.
 3. **Winning/Losing**: Get 5 bees = win. 0 lives or time out = lose.
-
-This prototype emphasizes creative keyboard use: Z/B as repeated taps (discrete but building), P-O-I as a directional swipe gesture (multi-event processing).
